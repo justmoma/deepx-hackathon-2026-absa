@@ -15,4 +15,4 @@ jobs:
       - name: Push to hub
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
-        run: git push --force https://justhum4n:$HF_TOKEN@huggingface.co/spaces/justhum4n/deepx-hackathon-2026-absa main
+        run: git push --force https://justmoma:$HF_TOKEN@huggingface.co/spaces/justmoma/deepx-hackathon-2026-absa main

@@ -18,6 +18,7 @@ pinned: false
     <a href="#-results"><img src="https://img.shields.io/badge/F1_Score-82.8%25-brightgreen" alt="F1 Score"></a>
     <a href="#-architecture"><img src="https://img.shields.io/badge/backbone-MARBERTv2-orange?logo=huggingface" alt="MARBERT"></a>
     <a href="#-web-demo"><img src="https://img.shields.io/badge/demo-Flask_Web_UI-purple?logo=flask" alt="Flask Demo"></a>
+    <a href="https://huggingface.co/spaces/justhum4n/deepx-hackathon-2026-absa"><img src="https://img.shields.io/badge/%F0%9F%A4%97_Hugging_Face-Live_Model-FFD21E?logoColor=000" alt="Hugging Face Space"></a>
     <a href="https://deepx-hackathon-2026-absa-dwx2.vercel.app"><img src="https://img.shields.io/badge/Live_Deployment-Vercel-black?logo=vercel" alt="Vercel Deployment"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
   </p>
@@ -152,12 +153,12 @@ pip install -r requirements.txt
 
 ### Model Weights
 
-The trained model weights (`best_model.pt`, ~621 MB) are not included in this repository due to size limits. To obtain them:
+The trained model weights (`best_model.pt`, ~621 MB) are tracked in this repository using Git LFS and are fully loaded in the Hugging Face deployment.
 
-1. **Train from scratch** — see [Training](#-training) below
-2. **Download** — *(if hosted)* place the file at `saved_model/best_model.pt`
+1. **Hugging Face Deployment** — Runs the full `MARBERTv2` model in Live Mode automatically.
+2. **Train from scratch** — see [Training](#-training) below.
 
-> Without model weights, the web demo runs in **Demo Mode** using keyword-based analysis.
+> Without model weights (e.g. on serverless platforms like Vercel), the web demo falls back to **Demo Mode** using keyword-based analysis.
 
 ### Dataset
 
@@ -177,7 +178,8 @@ Place the competition datasets in the project root:
 ## 🎮 Web Demo
 
 A premium, production-grade web interface for live sentiment analysis is deployed and available at:  
-👉 **[deepx-hackathon-2026-absa-dwx2.vercel.app](https://deepx-hackathon-2026-absa-dwx2.vercel.app)**
+👉 **[Hugging Face Space (Live Model)](https://huggingface.co/spaces/justhum4n/deepx-hackathon-2026-absa)**  
+👉 **[Vercel Deployment (Demo Mode)](https://deepx-hackathon-2026-absa-dwx2.vercel.app)**
 
 Or run it locally:
 ```bash

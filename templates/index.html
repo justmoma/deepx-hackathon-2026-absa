@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arabic ABSA System</title>
+    <meta name="description" content="Production-grade Arabic Aspect-Based Sentiment Analysis system. Powered by MARBERTv2.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=IBM+Plex+Mono:wght@400;500&family=Noto+Kufi+Arabic:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <!-- ─── BACKGROUND EFFECTS ───────────────────────────────────── -->
+    <div class="bg-grid"></div>
+    <div class="bg-glow bg-glow--1"></div>
+    <div class="bg-glow bg-glow--2"></div>
+    <div class="bg-glow bg-glow--3"></div>
+
+    <!-- ─── NAVIGATION ───────────────────────────────────────────── -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-brand">
+            <span class="nav-logo">✦</span>
+            <span class="nav-title">ABSA System</span>
+        </div>
+        <div class="nav-links">
+            <a href="#demo" class="nav-link active">Demo</a>
+            <a href="#architecture" class="nav-link">Architecture</a>
+            <a href="#metrics" class="nav-link">Metrics</a>
+            <a href="#insights" class="nav-link">Insights</a>
+        </div>
+        <div class="nav-status" id="navStatus">
+            <span class="status-dot"></span>
+            <span class="status-text">Loading...</span>
+        </div>
+    </nav>
+
+    <!-- ─── HERO SECTION ─────────────────────────────────────────── -->
+    <section class="hero" id="hero">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge-icon">⚡</span>
+                <span>DeepX Hackathon 2026</span>
+            </div>
+            <h1 class="hero-title">
+                <span class="title-line">Arabic</span>
+                <span class="title-line gradient-text">Aspect-Based</span>
+                <span class="title-line">Sentiment Analysis</span>
+            </h1>
+            <p class="hero-description">
+                A production-grade NLP system that dissects Arabic customer reviews — identifying 
+                <strong>what</strong> aspects are mentioned and <strong>how</strong> the customer feels about each one.
+                Built on <span class="highlight">MARBERTv2</span> with semi-supervised learning.
+            </p>
+            <div class="hero-stats">
+                <div class="stat-card">
+                    <span class="stat-value" id="heroF1">82.8%</span>
+                    <span class="stat-label">F1 Score</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">9</span>
+                    <span class="stat-label">Aspects</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">3,584</span>
+                    <span class="stat-label">Training Samples</span>
+                </div>
+                <div class="stat-card">
+                    <span class="stat-value">3</span>
+                    <span class="stat-label">Training Stages</span>
+                </div>
+            </div>
+            <a href="#demo" class="hero-cta">
+                <span>Try It Live</span>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M7 17L17 7M17 7H7M17 7V17"/>
+                </svg>
+            </a>
+        </div>
+    </section>
+
+    <!-- ─── LIVE DEMO ────────────────────────────────────────────── -->
+    <section class="section" id="demo">
+        <div class="section-header">
+            <span class="section-badge">Live Demo</span>
+            <h2 class="section-title">Analyze Arabic Reviews</h2>
+            <p class="section-subtitle">Type or paste any Arabic customer review and watch the model break it down into aspects and sentiments in real-time.</p>
+        </div>
+
+        <div class="demo-container">
+            <div class="demo-input-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">📝</span>
+                    <span class="panel-title">Input Review</span>
+                </div>
+                <textarea id="reviewInput" class="review-textarea" dir="rtl" placeholder="اكتب مراجعة عربية هنا...&#10;&#10;مثال: الأكل كان ممتاز بس التوصيل اتأخر جداً والأسعار مبالغ فيها"></textarea>
+                <div class="demo-actions">
+                    <button id="analyzeBtn" class="btn btn-primary" onclick="analyzeReview()">
+                        <span class="btn-icon">⚡</span>
+                        <span>Analyze</span>
+                    </button>
+                    <button class="btn btn-ghost" onclick="clearInput()">
+                        <span>Clear</span>
+                    </button>
+                </div>
+                <div class="example-reviews">
+                    <p class="examples-label">Try an example:</p>
+                    <div class="example-chips">
+                        <button class="chip" onclick="loadExample(0)">🍽️ Food & Service</button>
+                        <button class="chip" onclick="loadExample(1)">🚚 Delivery Issue</button>
+                        <button class="chip" onclick="loadExample(2)">📱 App Review</button>
+                        <button class="chip" onclick="loadExample(3)">💰 Price & Quality</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="demo-output-panel">
+                <div class="panel-header">
+                    <span class="panel-icon">🎯</span>
+                    <span class="panel-title">Analysis Results</span>
+                    <span class="mode-badge" id="modeBadge" style="display:none;"></span>
+                </div>
+                
+                <!-- Loading skeleton -->
+                <div id="loadingSkeleton" class="loading-skeleton" style="display:none;">
+                    <div class="skeleton-pulse"></div>
+                    <div class="skeleton-pulse short"></div>
+                    <div class="skeleton-cards">
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                        <div class="skeleton-card"></div>
+                    </div>
+                </div>
+
+                <!-- Empty state -->
+                <div id="emptyState" class="empty-state">
+                    <div class="empty-icon">🔍</div>
+                    <p>Enter an Arabic review and click <strong>Analyze</strong> to see the results.</p>
+                </div>
+
+                <!-- Results -->
+                <div id="resultsContainer" style="display:none;">
+                    <div id="aspectCards" class="aspect-cards"></div>
+                    <div class="json-toggle">
+                        <button class="btn btn-sm btn-ghost" onclick="toggleJSON()">
+                            <span id="jsonToggleText">Show JSON Output</span>
+                        </button>
+                    </div>
+                    <pre id="jsonOutput" class="json-output" style="display:none;"></pre>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── ARCHITECTURE ─────────────────────────────────────────── -->
+    <section class="section section-dark" id="architecture">
+        <div class="section-header">
+            <span class="section-badge">Technical Deep Dive</span>
+            <h2 class="section-title">Model Architecture</h2>
+            <p class="section-subtitle">How our system processes Arabic reviews from raw text to structured sentiment predictions.</p>
+        </div>
+
+        <div class="architecture-flow">
+            <div class="arch-step">
+                <div class="arch-step-number">1</div>
+                <div class="arch-step-content">
+                    <h3>Arabic Preprocessing</h3>
+                    <p>Normalize Alef/Taa forms, strip diacritics, collapse repeated chars, remove non-Arabic noise. Filter out reviews with &lt;50% Arabic characters.</p>
+                    <div class="arch-tag">12% training data filtered</div>
+                </div>
+            </div>
+            <div class="arch-connector"></div>
+            <div class="arch-step">
+                <div class="arch-step-number">2</div>
+                <div class="arch-step-content">
+                    <h3>MARBERTv2 Encoder</h3>
+                    <p>Pre-trained on 1B+ dialectal Arabic tweets. 12-layer transformer producing 768-dim [CLS] representations. Fine-tuned end-to-end.</p>
+                    <div class="arch-tag">768-dim embeddings</div>
+                </div>
+            </div>
+            <div class="arch-connector"></div>
+            <div class="arch-step">
+                <div class="arch-step-number">3</div>
+                <div class="arch-step-content">
+                    <h3>9 Classification Heads</h3>
+                    <p>Independent linear layers (768→4) per aspect. Softmax forces mutual exclusivity: each aspect gets exactly one of [absent, positive, negative, neutral].</p>
+                    <div class="arch-tag">9 × 4-class softmax</div>
+                </div>
+            </div>
+            <div class="arch-connector"></div>
+            <div class="arch-step">
+                <div class="arch-step-number">4</div>
+                <div class="arch-step-content">
+                    <h3>Weighted Loss + Pseudo-Labels</h3>
+                    <p>Inverse-frequency class weights handle imbalance. Semi-supervised pseudo-labeling adds 1,418 high-confidence samples from unlabeled data.</p>
+                    <div class="arch-tag">3,584 total training samples</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture diagram -->
+        <div class="arch-diagram">
+            <div class="diagram-title">Pipeline Overview</div>
+            <div class="diagram-flow">
+                <div class="diagram-node node-input">
+                    <div class="node-label">Arabic Review</div>
+                    <div class="node-detail">"الأكل كان ممتاز بس الخدمة سيئة"</div>
+                </div>
+                <div class="diagram-arrow">→</div>
+                <div class="diagram-node node-process">
+                    <div class="node-label">Clean & Tokenize</div>
+                    <div class="node-detail">Normalize + MARBERT Tokenizer</div>
+                </div>
+                <div class="diagram-arrow">→</div>
+                <div class="diagram-node node-model">
+                    <div class="node-label">MARBERTv2</div>
+                    <div class="node-detail">12-layer Transformer</div>
+                </div>
+                <div class="diagram-arrow">→</div>
+                <div class="diagram-node node-heads">
+                    <div class="node-label">9 Aspect Heads</div>
+                    <div class="node-detail">Softmax Classification</div>
+                </div>
+                <div class="diagram-arrow">→</div>
+                <div class="diagram-node node-output">
+                    <div class="node-label">Structured Output</div>
+                    <div class="node-detail">food: positive, service: negative</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── METRICS ──────────────────────────────────────────────── -->
+    <section class="section" id="metrics">
+        <div class="section-header">
+            <span class="section-badge">Performance</span>
+            <h2 class="section-title">Model Metrics</h2>
+            <p class="section-subtitle">Evaluation results on the hidden test set — measured using Micro F1-score.</p>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card metric-primary">
+                <div class="metric-icon">🎯</div>
+                <div class="metric-value">82.8<span class="metric-unit">%</span></div>
+                <div class="metric-label">Micro F1-Score</div>
+                <div class="metric-bar"><div class="metric-fill" style="width:82.8%"></div></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">📐</div>
+                <div class="metric-value">81.3<span class="metric-unit">%</span></div>
+                <div class="metric-label">Precision</div>
+                <div class="metric-bar"><div class="metric-fill" style="width:81.3%"></div></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">📡</div>
+                <div class="metric-value">84.4<span class="metric-unit">%</span></div>
+                <div class="metric-label">Recall</div>
+                <div class="metric-bar"><div class="metric-fill" style="width:84.4%"></div></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-icon">🏆</div>
+                <div class="metric-value">24.85<span class="metric-unit">/30</span></div>
+                <div class="metric-label">Pillar 1 Score</div>
+                <div class="metric-bar"><div class="metric-fill" style="width:82.8%"></div></div>
+            </div>
+        </div>
+
+        <!-- Training progress -->
+        <div class="training-timeline">
+            <h3 class="timeline-title">Training Progression</h3>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-marker stage1"></div>
+                    <div class="timeline-content">
+                        <h4>Stage 1 — Supervised Training</h4>
+                        <p>1,731 Arabic-filtered samples. Early stopping at epoch 7.</p>
+                        <span class="timeline-metric">Val F1: 78.19%</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker stage2"></div>
+                    <div class="timeline-content">
+                        <h4>Stage 2 — Pseudo-Labeling</h4>
+                        <p>2,972 unlabeled samples → 1,418 high-confidence pseudo-labels (≥90% confidence).</p>
+                        <span class="timeline-metric">47.7% yield rate</span>
+                    </div>
+                </div>
+                <div class="timeline-item">
+                    <div class="timeline-marker stage3"></div>
+                    <div class="timeline-content">
+                        <h4>Stage 3 — Full Retrain</h4>
+                        <p>3,584 combined samples (train + val + pseudo). 10 epochs, loss: 1.0 → 0.04.</p>
+                        <span class="timeline-metric">Test F1: 82.8%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── INSIGHTS ─────────────────────────────────────────────── -->
+    <section class="section section-dark" id="insights">
+        <div class="section-header">
+            <span class="section-badge">Data Insights</span>
+            <h2 class="section-title">Prediction Analysis</h2>
+            <p class="section-subtitle">Distribution of aspects and sentiments across all 500 test predictions.</p>
+        </div>
+
+        <div class="insights-grid">
+            <div class="insight-card" id="aspectDistCard">
+                <h3 class="insight-title">Aspect Distribution</h3>
+                <div id="aspectChart" class="chart-container">
+                    <div class="chart-loading">Loading chart data...</div>
+                </div>
+            </div>
+            <div class="insight-card" id="sentimentDistCard">
+                <h3 class="insight-title">Sentiment Distribution</h3>
+                <div id="sentimentChart" class="chart-container">
+                    <div class="chart-loading">Loading chart data...</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="insight-card insight-wide" id="breakdownCard">
+            <h3 class="insight-title">Aspect × Sentiment Breakdown</h3>
+            <div id="breakdownChart" class="breakdown-container">
+                <div class="chart-loading">Loading chart data...</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── ASPECT TAXONOMY ──────────────────────────────────────── -->
+    <section class="section" id="taxonomy">
+        <div class="section-header">
+            <span class="section-badge">Taxonomy</span>
+            <h2 class="section-title">Aspect Categories</h2>
+            <p class="section-subtitle">The 9 aspect categories our model detects in every review.</p>
+        </div>
+
+        <div class="taxonomy-grid">
+            <div class="taxonomy-card">
+                <span class="taxonomy-icon">🍽️</span>
+                <h4>Food</h4>
+                <p class="taxonomy-ar">الطعام</p>
+                <p>Quality, taste, freshness, portion size</p>
+            </div>
+            <div class="taxonomy-card">
+                <span class="taxonomy-icon">🤝</span>
+                <h4>Service</h4>
+                <p class="taxonomy-ar">الخدمة</p>
+                <p>Staff attitude, speed, professionalism</p>
+            </div>
+            <div class="taxonomy-card">
+                <span class="taxonomy-icon">💰</span>
+                <h4>Price</h4>
+                <p class="taxonomy-ar">السعر</p>
+                <p>Value for money, pricing fairness</p>
+            </div>
+            <div class="taxonomy-card">
+                <span class="taxonomy-icon">✨</span>
+                <h4>Cleanliness</h4>
+                <p class="taxonomy-ar">النظافة</p>
+                <p>Hygiene, tidiness of the venue</p>
+            </div>
+            <div class="taxonomy-card">
+                <span class="taxonomy-icon">🚚</span>
+                <h4>Delivery</h4>
+                <p class="taxonomy-ar">التوصيل</p>
+                <p>Speed, packaging, accuracy</p>
+            </div>
+            <div class="taxonomy-card">
+                <span class="taxonomy-icon">🎶</span>
+                <h4>Ambiance</h4>
+                <p class="taxonomy-ar">الأجواء</p>
+                <p>Atmosphere, decor, noise level</p>
+            </div>
+            <div class="taxonomy-card">
+                <span class="taxonomy-icon">📱</span>
+                <h4>App Experience</h4>
+                <p class="taxonomy-ar">التطبيق</p>
+                <p>App usability, bugs, interface</p>
+            </div>
+            <div class="taxonomy-card">
+                <span class="taxonomy-icon">📋</span>
+                <h4>General</h4>
+                <p class="taxonomy-ar">عام</p>
+                <p>Overall impression, recommendation</p>
+            </div>
+            <div class="taxonomy-card taxonomy-none">
+                <span class="taxonomy-icon">—</span>
+                <h4>None</h4>
+                <p class="taxonomy-ar">لا يوجد</p>
+                <p>No specific aspect mentioned</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ─── FOOTER ───────────────────────────────────────────────── -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <span class="footer-logo">✦</span>
+                <span class="footer-name">ABSA System</span>
+            </div>
+            <p class="footer-text">Built for the DeepX Hackathon 2026 — Arabic Aspect-Based Sentiment Analysis Challenge</p>
+            <div class="footer-tech">
+                <span class="tech-badge">MARBERTv2</span>
+                <span class="tech-badge">PyTorch</span>
+                <span class="tech-badge">Flask</span>
+                <span class="tech-badge">Semi-Supervised Learning</span>
+            </div>
+        </div>
+    </footer>
+
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

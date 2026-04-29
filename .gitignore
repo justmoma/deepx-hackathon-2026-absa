@@ -1,0 +1,41 @@
+# ─── Python ──────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ─── Virtual environments ────────────────────────────────
+.venv/
+venv/
+ENV/
+
+# ─── Model weights (too large for GitHub) ────────────────
+saved_model/*.pt
+saved_model/*.bin
+*.pt
+*.bin
+!.gitkeep
+
+# ─── Datasets (competition data — not distributable) ─────
+*.xlsx
+*.csv
+
+# ─── IDE / Editor ────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# ─── Jupyter ─────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ─── OS ──────────────────────────────────────────────────
+Desktop.ini
+ehthumbs.db

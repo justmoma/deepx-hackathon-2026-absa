@@ -1,0 +1,132 @@
+The Netlify deploy errored, with the following guidance provided:
+
+Diagnosis
+
+- Relevant log lines showing large wheel downloads: [lines 193–201](#L193-L201).  
+- The immediate error is "No space left on device" while pip is writing temporary files: [line 210](#L210), [line 226](#L226) and the resulting pip ProtocolError: [line 287](#L287).  
+- Netlify fails the build during dependency installation as shown here: [lines 288–290](#L288-L290).
+
+Root cause: pip is downloading very large PyTorch / CUDA-related wheels during pip install (see the large nvidia/torch wheel downloads at [lines 193–201](#L193-L201)). The build VM runs out of disk space while pip writes temporary files, causing OSError 28 and aborting dependency installation.
+
+Solution
+
+Short-term (fast, minimal changes)
+1. Prevent pip from caching wheel files (reduces disk usage during install). In your Netlify site settings add the environment variable:
+   - Key: PIP_NO_CACHE_DIR
+   - Value: true
+
+   Or set it in your build command, e.g.
+```bash
+export PIP_NO_CACHE_DIR=true && pip install -r requirements.txt
+```
+
+2. Also disable pip version checks to avoid extra writes:
+   - Add env var: PIP_DISABLE_PIP_VERSION_CHECK=true
+
+Medium / recommended (fix the root cause)
+1. Remove heavy ML packages (torch, large CUDA wheels) from the Netlify build. Netlify is intended for static/front-end and small backends and has limited disk/compute. If your app needs to run ML inference or install PyTorch/transformers, host that service elsewhere (e.g., a dedicated server, cloud VM, API hosted on Render/Heroku/GCP/AWS/Lambda, or a container built with GitHub Actions) and let the Netlify site call that API.
+
+2. If you must install PyTorch on Netlify (not recommended), switch to the CPU-only wheel (much smaller) and point pip to the PyTorch CPU index. Edit requirements.txt (see current file in your repo: https://github.com/justmoma/deepx-hackathon-2026-absa/blob/main/requirements.txt) and replace the torch entry with CPU wheel instructions. Example requirements.txt snippet:
+```text
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.10.0+cpu
+transformers==5.0.0
+```
+Notes:
+- Verify the package line is present in requirements.txt (you already have torch==2.10.0 there) before changing it.
+- Using the CPU index will avoid pulling CUDA (nvidia) wheels that consume lots of space.
+
+Long-term / best practice
+- Split responsibilities: keep the Netlify site for frontend/static assets, and deploy a separate backend (container or server) for heavy ML dependencies. Build your backend in an environment suited to large Python packages and GPU/CPU choices.
+- If you choose to build artifacts (wheels, model files) in CI, build them in GitHub Actions or another CI that has larger disk and then deploy only the compiled artifact to Netlify (or host the model elsewhere and fetch at runtime).
+
+Why these changes
+- The log shows pip ran out of space while writing temp files during large downloads ([lines 193–201] and [line 210]), so reducing what pip downloads (CPU-only wheel) or disabling caching reduces disk writes and prevents the OSError 28 failure.
+
+If you want, I can:
+- Suggest an exact replacement for requirements.txt tailored to CPU-only installation for your Python version, or
+- Draft Netlify build environment variable instructions (step-by-step) to add PIP_NO_CACHE_DIR and PIP_DISABLE_PIP_VERSION_CHECK.
+
+The relevant error logs are:
+
+Line 0: build-image version: ac6eb13fbf000e5c09ad677efd8b7c3c2d0142b6 (noble-new-builds)
+Line 1: buildbot version: a15fbca04a781112b2422972fc752cf82dd4cb3a
+Line 2: Fetching cached dependencies
+Line 3: Failed to fetch cache, continuing with build
+Line 4: Starting to prepare the repo for build
+Line 5: No cached dependencies found. Cloning fresh repo
+Line 6: git clone --filter=blob:none https://github.com/justmoma/deepx-hackathon-2026-absa
+Line 7: Preparing Git Reference refs/heads/main
+Line 8: Installing dependencies
+Line 9: mise ~/.config/mise/config.toml tools: python@3.14.3
+Line 10: Installing pip dependencies from requirements.txt
+Line 11: Collecting torch==2.10.0 (from -r requirements.txt (line 1))
+Line 12:   Downloading torch-2.10.0-3-cp314-cp314-manylinux_2_28_x86_64.whl.metadata (31 kB)
+Line 13: Collecting transformers==5.0.0 (from -r requirements.txt (line 2))
+Line 193: Downloading nvidia_curand_cu12-10.3.9.90-py3-none-manylinux_2_27_x86_64.whl (63.6 MB)
+Line 194:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 63.6/63.6 MB 81.5 MB/s  0:00:00
+Line 195: Downloading nvidia_cusolver_cu12-11.7.3.90-py3-none-manylinux_2_27_x86_64.whl (267.5 MB)
+Line 196:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 267.5/267.5 MB 160.4 MB/s  0:00:01
+Line 197: Downloading nvidia_cusparse_cu12-12.5.8.93-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (288.2 MB)
+Line 198:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 288.2/288.2 MB 75.2 MB/s  0:00:03
+Line 199: Downloading nvidia_cusparselt_cu12-0.7.1-py3-none-manylinux2014_x86_64.whl (287.2 MB)
+Line 200:    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 287.2/287.2 MB 116.9 MB/s  0:00:02
+Line 201: Downloading nvidia_nccl_cu12-2.27.5-py3-none-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (322.3 MB)
+Line 202:    ━━━━━━━━━━━━━━━━━━━━╸                    166.7/322.3 MB 91.2 MB/s eta 0:00:02
+Line 203: WARNING: There was an error checking the latest version of pip.
+Line 204: Exception ignored while calling deallocator <function _TemporaryFileCloser.__del__ at 0x7f2e602aa400>:
+Line 205: Traceback (most recent call last):
+Line 206:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/tempfile.py", line 482, in __del__
+Line 207:     self.cleanup()
+Line 208:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/tempfile.py", line 461, in cleanup
+Line 209:     self.file.close()
+Line 210: OSError: [Errno 28] No space left on device
+Line 211: ERROR: Exception:
+Line 212: Traceback (most recent call last):
+Line 213:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/pip/_vendor/urllib3/response.py", l
+Line 214:     yield
+Line 215:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/pip/_vendor/urllib3/response.py", l
+Line 216:     data = self._fp_read(amt) if not fp_closed else b""
+Line 217:            ~~~~~~~~~~~~~^^^^^
+Line 218:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/pip/_vendor/urllib3/response.py", l
+Line 219:     return self._fp.read(amt) if amt is not None else self._fp.read()
+Line 220:            ~~~~~~~~~~~~~^^^^^
+Line 221:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/pip/_vendor/cachecontrol/filewrappe
+Line 222:     self.__buf.write(data)
+Line 223:     ~~~~~~~~~~~~~~~~^^^^^^
+Line 224:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/tempfile.py", line 520, in func_wrapper
+Line 225:     return func(*args, **kwargs)
+Line 226: OSError: [Errno 28] No space left on device
+Line 227: During handling of the above exception, another exception occurred:
+Line 228: Traceback (most recent call last):
+Line 229:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/pip/_internal/cli/base_command.py",
+Line 230:     status = _inner_run()
+Line 231:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/pip/_internal/cli/base_command.py",
+Line 232:     return self.run(options, args)
+Line 233:            ~~~~~~~~^^^^^^^^^^^^^^^
+Line 234:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/pip/_internal/cli/req_command.py", 
+Line 235:     return func(self, options, args)
+Line 236:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/pip/_internal/commands/install.py",
+Line 237:     preparer.prepare_linked_requirements_more(
+Line 270:         chunk_size,
+Line 271:         ^^^^^^^^^^^
+Line 272:     ...<22 lines>...
+Line 273:         decode_content=False,
+Line 274:         ^^^^^^^^^^^^^^^^^^^^^
+Line 275:     ):
+Line 276:     ^
+Line 277:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/pip/_vendor/urllib3/response.py", l
+Line 278:     data = self.read(amt=amt, decode_content=decode_content)
+Line 279:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/pip/_vendor/urllib3/response.py", l
+Line 280:     with self._error_catcher():
+Line 281:          ~~~~~~~~~~~~~~~~~~~^^
+Line 282:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/contextlib.py", line 162, in __exit__
+Line 283:     self.gen.throw(value)
+Line 284:     ~~~~~~~~~~~~~~^^^^^^^
+Line 285:   File "/opt/buildhome/.local/share/mise/installs/python/3.14.3/lib/python3.14/site-packages/pip/_vendor/urllib3/response.py", l
+Line 286:     raise ProtocolError("Connection broken: %r" % e, e)
+Line 287: pip._vendor.urllib3.exceptions.ProtocolError: ("Connection broken: OSError(28, 'No space left on device')", OSError(28, 'No spac
+Line 288: Failed during stage 'Install dependencies': dependency_installation script returned non-zero exit code: 1
+Line 289: Error installing pip dependencies
+Line 290: Failing build: Failed to install dependencies
+Line 291: Finished processing build request in 6m33.249s

@@ -9,6 +9,7 @@
     <a href="#-results"><img src="https://img.shields.io/badge/F1_Score-82.8%25-brightgreen" alt="F1 Score"></a>
     <a href="#-architecture"><img src="https://img.shields.io/badge/backbone-MARBERTv2-orange?logo=huggingface" alt="MARBERT"></a>
     <a href="#-web-demo"><img src="https://img.shields.io/badge/demo-Flask_Web_UI-purple?logo=flask" alt="Flask Demo"></a>
+    <a href="https://deepx-hackathon-2026-absa.vercel.app"><img src="https://img.shields.io/badge/Live_Deployment-Vercel-black?logo=vercel" alt="Vercel Deployment"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
   </p>
 </p>
@@ -184,6 +185,11 @@ python app.py
 The demo works in two modes:
 - **🟢 Live Mode** — uses the trained MARBERTv2 model for real inference
 - **🟡 Demo Mode** — uses keyword-based analysis when no model weights are available
+
+### ☁️ Serverless Deployment
+This repository is configured for immediate deployment on platforms like **Vercel** via the included `vercel.json`. 
+
+*Note: Due to strict bundle size limits on serverless functions, the `requirements.txt` is purposefully configured to install the lightweight CPU-only version of PyTorch. When deployed on Vercel without the model weights, the server intelligently falls back to the Demo Mode.*
 
 ---
 

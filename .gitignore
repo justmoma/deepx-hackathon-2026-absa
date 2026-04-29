@@ -14,10 +14,11 @@ venv/
 ENV/
 
 # ─── Model weights (too large for GitHub) ────────────────
-saved_model/*.pt
-saved_model/*.bin
-*.pt
-*.bin
+# (Uncommented so they can be tracked by Git LFS)
+# saved_model/*.pt
+# saved_model/*.bin
+# *.pt
+# *.bin
 !.gitkeep
 
 # ─── Datasets (competition data — not distributable) ─────

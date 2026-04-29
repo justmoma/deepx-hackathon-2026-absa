@@ -1,3 +1,12 @@
+---
+title: Deepx Hackathon 2026 Absa
+emoji: 🚀
+colorFrom: blue
+colorTo: pink
+sdk: docker
+pinned: false
+---
+
 <p align="center">
   <h1 align="center">✦ Arabic Aspect-Based Sentiment Analysis</h1>
   <p align="center">

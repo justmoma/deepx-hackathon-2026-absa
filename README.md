@@ -9,7 +9,7 @@
     <a href="#-results"><img src="https://img.shields.io/badge/F1_Score-82.8%25-brightgreen" alt="F1 Score"></a>
     <a href="#-architecture"><img src="https://img.shields.io/badge/backbone-MARBERTv2-orange?logo=huggingface" alt="MARBERT"></a>
     <a href="#-web-demo"><img src="https://img.shields.io/badge/demo-Flask_Web_UI-purple?logo=flask" alt="Flask Demo"></a>
-    <a href="https://deepx-hackathon-2026-absa.vercel.app"><img src="https://img.shields.io/badge/Live_Deployment-Vercel-black?logo=vercel" alt="Vercel Deployment"></a>
+    <a href="https://deepx-hackathon-2026-absa-dwx2.vercel.app"><img src="https://img.shields.io/badge/Live_Deployment-Vercel-black?logo=vercel" alt="Vercel Deployment"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
   </p>
 </p>
@@ -167,8 +167,10 @@ Place the competition datasets in the project root:
 
 ## 🎮 Web Demo
 
-A premium, production-grade web interface for live sentiment analysis:
+A premium, production-grade web interface for live sentiment analysis is deployed and available at:  
+👉 **[deepx-hackathon-2026-absa-dwx2.vercel.app](https://deepx-hackathon-2026-absa-dwx2.vercel.app)**
 
+Or run it locally:
 ```bash
 python app.py
 # Open http://localhost:5000
